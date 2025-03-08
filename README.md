@@ -49,45 +49,80 @@ A powerful VSCode extension that streamlines code generation through customizabl
 ### Key Configuration Files
 
 #### 1. `_pathFiles.json`
-Defines file handling rules:
+Defines file handling rules. Each entry can be either a "create" or "update" configuration:
 
+##### Create Configuration
 ```json
-[
-  {
-    "pathTemplate": "src/models/user.ts",
-    "pathGenerate": "src/models/${camel-area}/${camel-model}.ts",
-    "actionType": "create"
-  },
-  {
-    "pathUpdate": "src/app.module.ts",
-    "actionType": "update",
-    "updateConfigs": [{
-      "type": "before",
-      "key": "// <insert-modules-here>",
-      "contentInsert": "import { ${pascal-model}Module } from './${kebab-model}/${kebab-model}.module';",
-      "isCheckExistNotUpdate": true
-    }]
-  }
-]
+{
+  "pathTemplate": "src/models/user.ts",     // Source template file path
+  "pathGenerate": "src/models/@{camel-area}/@{camel-model}.ts",  // Target generation path
+  "actionType": "create"    // Specifies file creation
+}
 ```
 
+##### Update Configuration
+```json
+{
+  "pathUpdate": "src/app.module.ts",   // Target file to update
+  "actionType": "update",              // Specifies file update
+  "updateConfigs": [{
+    "type": "before",                  // Insert position: "before" or "after"
+    "key": "// <insert-modules-here>", // Marker for insertion point
+    "contentInsert": "import { @{pascal-model}Module } from './@{kebab-model}/@{kebab-model}.module';",
+    "isCheckExistNotUpdate": true      // Skip if content exists
+  }]
+}
+```
+
+##### Fields Explained:
+- `pathTemplate`: Source file path in template directory
+- `pathGenerate`: Target path for new file generation (supports placeholders)
+- `pathUpdate`: Path to existing file to modify
+- `actionType`: "create" or "update"
+- `updateConfigs`: Array of update rules containing:
+  - `type`: Position to insert ("before"/"after" the key)
+  - `key`: Marker text in file
+  - `contentInsert`: Content to insert (supports placeholders)
+  - `isCheckExistNotUpdate`: Prevents duplicate content if true
+
 #### 2. `_displaySetting.json`
-Defines code generation patterns:
+Defines code generation patterns for different data types:
 
 ```json
 {
+  "__comment": "Key example @{<<fieldName>>}",
   "display": {
     "model": [
-      { "dataType": "String", "convert": "public @{fieldName}: string;" },
-      { "dataType": "Number", "convert": "public @{fieldName}: number;" }
+      { 
+        "dataType": "String",          // Input data type
+        "convert": "public @{fieldName}: string;"  // Property template
+      },
+      {
+        "dataType": "Number", 
+        "convert": "public @{fieldName}: number;"
+      }
     ],
     "html": [
-      { "dataType": "String", "convert": "<input name=\"@{fieldName}\" type=\"text\">" },
-      { "dataType": "Number", "convert": "<input name=\"@{fieldName}\" type=\"number\">" }
+      {
+        "dataType": "String",          // Input data type
+        "convert": "<input name=\"@{fieldName}\" type=\"text\">"  // HTML template
+      },
+      {
+        "dataType": "Number", 
+        "convert": "<input name=\"@{fieldName}\" type=\"number\">"
+      }
     ]
   }
 }
 ```
+
+##### Fields Explained:
+- `display`: Contains conversion rules grouped by context
+  - `model`: Rules for generating model properties
+  - `html`: Rules for generating HTML elements
+- Each rule contains:
+  - `dataType`: Input data type (String, Number, Boolean, etc.)
+  - `convert`: Template with @{fieldName} placeholder
 
 ## 🎯 Template Tags
 
@@ -95,7 +130,7 @@ Defines code generation patterns:
 Use in templates for dynamic code generation:
 
 ```typescript
-export class ${pascal-model} {
+export class @{pascal-model} {
     @{display.model-for}  // Generates properties from JSON
     
     constructor() {
@@ -106,14 +141,15 @@ export class ${pascal-model} {
 
 ### Text Format Tags
 
-| Format Tag | Input Example | Output |
-|------------|---------------|---------|
-| `${kebab-text}` | user profile | `user-profile` |
-| `${camel-text}` | user profile | `userProfile` |
-| `${pascal-text}` | user profile | `UserProfile` |
-| `${snake-text}` | user profile | `user_profile` |
-| `${upper-text}` | user profile | `USER_PROFILE` |
-| `${lower-text}` | user profile | `user_profile` |
+| Format Tag | Input Example | Output | Description |
+|------------|---------------|---------|-------------|
+| `@{kebab-text}` | user profile | `user-profile` | Lowercase with hyphens |
+| `@{camel-text}` | user profile | `userProfile` | camelCase formatting |
+| `@{pascal-text}` | user profile | `UserProfile` | PascalCase formatting |
+| `@{snake-text}` | user profile | `user_profile` | Lowercase with underscores |
+| `@{upper-text}` | user profile | `USER_PROFILE` | Uppercase without separators |
+| `@{lower-text}` | user profile | `user_profile` | Lowercase without separators |
+| `@{lable-text}` | user profile | `User Profile` | Lable case formatting |
 
 ## 🔧 Action Types
 
@@ -136,11 +172,11 @@ export class ${pascal-model} {
 
 ## 🐛 Issue Reporting
 
-Found a bug or have a suggestion? Please report it on our [GitHub repository](https://github.com/dongquoctien/ittom-generate-code-docs).
+Found a bug or have a suggestion? Please report it on our [GitHub repository](https://github.com/dongquoctien/ittom-generate-code-docs/issues).
 
 ## 📝 Release Notes
 
-### 0.0.1
+### 0.0.4
 - Initial release
 - Template generation system
 - JSON-based code generation
