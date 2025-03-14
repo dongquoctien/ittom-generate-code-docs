@@ -98,9 +98,10 @@ Defines code generation patterns for different data types:
         "convert": "public @{fieldName}: string;"  // Property template
       },
       {
-        "dataType": "Number", 
-        "convert": "public @{fieldName}: number;"
-      }
+        "dataType": "Float", 
+        "convert": "public @{fieldName}: double;"
+      },
+     
     ],
     "html": [
       {
@@ -108,9 +109,29 @@ Defines code generation patterns for different data types:
         "convert": "<input name=\"@{fieldName}\" type=\"text\">"  // HTML template
       },
       {
-        "dataType": "Number", 
+        "dataType": "Float", 
         "convert": "<input name=\"@{fieldName}\" type=\"number\">"
-      }
+      },
+      {
+        "dataType": "Integer",
+        "convert": "@{display.htmlInteger}"
+      },
+    ],
+     "htmlInteger": [
+      {
+        "name": "Select List",
+        "dataType": "Integer",  
+        "convert": "<select name=\"@{camel-fieldName}\" id=\"cars\">\n    <option value=\"volvo\">Volvo</option>\n    <option value=\"saab\">Saab</option>\n  </select>" // Html option Integer of html.dataType.Integer
+      },
+      {
+        "name": "Numberic",
+        "dataType": "Integer", 
+        "convert": "<input name=\"@{fieldName}\" type=\"numberic\">"
+      },
+      {
+        "dataType": "Currency",
+        "convert": "<input name=\"@{fieldName}\" type=\"currency\">"
+      },
     ]
   }
 }
@@ -122,7 +143,8 @@ Defines code generation patterns for different data types:
   - `html`: Rules for generating HTML elements
 - Each rule contains:
   - `dataType`: Input data type (String, Number, Boolean, etc.)
-  - `convert`: Template with @{fieldName} placeholder
+  - `convert`: Template with @{fieldName} placeholder or @{display.htmlInteger}
+  - `htmlInteger`: Add an option for replacing the **fieldName** value in the JSON model.
 
 ## 🎯 Template Tags
 
@@ -141,15 +163,16 @@ export class @{pascal-model} {
 
 ### Text Format Tags
 
-| Format Tag | Input Example | Output | Description |
+Input text supports the following formats: **"user profile"**, **"user-profile"**, **"user_profile"**, and **"userProfile"**.
+| Format Tag | Input Text Example | Output | Description |
 |------------|---------------|---------|-------------|
-| `@{kebab-text}` | user profile | `user-profile` | Lowercase with hyphens |
+| `@{kebab-text}` | userProfile | `user-profile` | Lowercase with hyphens |
 | `@{camel-text}` | user profile | `userProfile` | camelCase formatting |
-| `@{pascal-text}` | user profile | `UserProfile` | PascalCase formatting |
+| `@{pascal-text}` | user-profile | `UserProfile` | PascalCase formatting |
 | `@{snake-text}` | user profile | `user_profile` | Lowercase with underscores |
 | `@{upper-text}` | user profile | `USER_PROFILE` | Uppercase without separators |
 | `@{lower-text}` | user profile | `user_profile` | Lowercase without separators |
-| `@{lable-text}` | user profile | `User Profile` | Lable case formatting |
+| `@{label-text}` | user profile | `User Profile` | Lable case formatting |
 
 ## 🔧 Action Types
 
@@ -176,7 +199,7 @@ Found a bug or have a suggestion? Please report it on our [GitHub repository](ht
 
 ## 📝 Release Notes
 
-### 0.0.4
+### 0.0.7
 - Initial release
 - Template generation system
 - JSON-based code generation
