@@ -49,6 +49,19 @@ A powerful VSCode extension that streamlines code generation through customizabl
 ### Key Configuration Files
 
 #### 1. `_pathFiles.json`
+
+### **Structure:**
+- `pathTemplate`: Source file path in template directory
+- `pathGenerate`: Target path for new file generation (supports placeholders)
+- `pathUpdate`: Path to existing file to modify
+- `actionType`: "create" or "update"
+- `updateConfigs`: Array of update rules containing:
+  - `type`: Position to insert ("before"/"after" the key)
+  - `key`: Marker text in file
+  - `contentInsert`: Content to insert (supports placeholders)
+  - `isCheckExistNotUpdate`: Prevents duplicate content if true
+
+
 Defines file handling rules. Each entry can be either a "create" or "update" configuration:
 
 ##### Create Configuration
@@ -74,77 +87,94 @@ Defines file handling rules. Each entry can be either a "create" or "update" con
 }
 ```
 
-##### Fields Explained:
-- `pathTemplate`: Source file path in template directory
-- `pathGenerate`: Target path for new file generation (supports placeholders)
-- `pathUpdate`: Path to existing file to modify
-- `actionType`: "create" or "update"
-- `updateConfigs`: Array of update rules containing:
-  - `type`: Position to insert ("before"/"after" the key)
-  - `key`: Marker text in file
-  - `contentInsert`: Content to insert (supports placeholders)
-  - `isCheckExistNotUpdate`: Prevents duplicate content if true
-
 #### 2. `_displaySetting.json`
-Defines code generation patterns for different data types:
+
+### **Structure:**
+- `@fieldName`: The field name of the previously entered JSON object model.  
+- `display`: A mandatory branch that must be declared, containing sub-branches used for rendering.  
+  - `display.DisplayModel`: As shown in the example, `DisplayModel` can be (formHtmlInteger, form, formInteger, etc.).  
+
+- **Structure of `DisplayModel`:**  
+  - `nameUnique`: A unique name within the `DisplayModel[]` array, used when `convert` is declared as **@{display.DisplayModel}**.  
+  - `dataType`: Supports `Integer`, `Float`, `String`, `Boolean`, `Date`, and `DateTime`.  
+  - `convert`: The content to be converted to or selected (**@{display.DisplayModel}**).  
+  - `followBySelect`: Used to track the selection of **@{display.DisplayModel}** as desired.
+
+
+Example: Defines code generation patterns for different data types:
 
 ```json
 {
   "__comment": "Key example @{<<fieldName>>}",
   "display": {
-    "model": [
-      { 
-        "dataType": "String",          // Input data type
-        "convert": "public @{fieldName}: string;"  // Property template
-      },
+    "formHtml": [
       {
-        "dataType": "Float", 
-        "convert": "public @{fieldName}: double;"
-      },
-     
-    ],
-    "html": [
-      {
-        "dataType": "String",          // Input data type
-        "convert": "<input name=\"@{fieldName}\" type=\"text\">"  // HTML template
-      },
-      {
-        "dataType": "Float", 
-        "convert": "<input name=\"@{fieldName}\" type=\"number\">"
+        "dataType": "String",
+        "convert": "@{fieldName} render for string"
       },
       {
         "dataType": "Integer",
-        "convert": "@{display.htmlInteger}"
+        "convert": "@{display.formHtmlInteger}"
       },
+      {
+        "dataType": "Boolean",
+        "convert": ""
+      },
+      {
+        "dataType": "DateTime",
+        "convert": "public @{fieldName}: Date;"
+      }
     ],
-     "htmlInteger": [
+    "formHtmlInteger": [
       {
-        "name": "Select List",
-        "dataType": "Integer",  
-        "convert": "<select name=\"@{camel-fieldName}\" id=\"cars\">\n    <option value=\"volvo\">Volvo</option>\n    <option value=\"saab\">Saab</option>\n  </select>" // Html option Integer of html.dataType.Integer
+        "nameUnique": "SelectList",
+        "dataType": "Integer",
+        "convert": "          <tr>\n            <th scope=\"row\" class=\"th-bg\">@{lable-fieldName}</th>\n            <td>\n              <app-selectbox useAllOptionName=\"Select\" [options]=\"@{camel-fieldName}List\" dataKey=\"@{camel-fieldName}Value\" displayKey=\"@{camel-fieldName}Text\"  formControlName=\"@{camel-fieldName}\" class=\"flex-fill\" [class.valid-error]=\"checkIsInvalid('@{camel-fieldName}')\"></app-selectbox>\n            </td>\n          </tr>"
       },
       {
-        "name": "Numberic",
-        "dataType": "Integer", 
-        "convert": "<input name=\"@{fieldName}\" type=\"numberic\">"
+        "nameUnique": "Numberic",
+        "dataType": "Integer",
+        "convert": "      <tr>\n        <th scope=\"row\" class=\"th-bg\">@{lable-fieldName}</th>\n        <td>\n          <app-input-text formControlName=\"@{camel-fieldName}\" [isInvalid]=\"checkIsInvalid('@{camel-fieldName}')\" inputFormat=\"numberOnly\"></app-input-text>\n        </td>\n      </tr>"
+      }
+    ],
+    "form": [
+      {
+        "dataType": "String",
+        "convert": "public @{fieldName}: string;"
       },
       {
-        "dataType": "Currency",
-        "convert": "<input name=\"@{fieldName}\" type=\"currency\">"
+        "dataType": "Integer",
+        "convert": "@{display.formInteger}",
+        "followBySelect": "formHtml"
       },
+      {
+        "dataType": "Boolean",
+        "convert": "public @{fieldName}: boolean;"
+      },
+      {
+        "dataType": "Object",
+        "convert": "public @{fieldName}: any;"
+      },
+      {
+        "dataType": "Array",
+        "convert": "public @{fieldName}: any[];"
+      },
+      {
+        "dataType": "DateTime",
+        "convert": "public @{fieldName}: Date;"
+      }
+    ],
+    "formInteger": [
+      {
+        "nameUnique": "SelectList",
+        "dataType": "Integer",
+        "convert": "  @Input() select@{pascal-fieldName}: number;\n  @Input() @{camel-fieldName}List: any[];"
+      }
     ]
   }
 }
 ```
 
-##### Fields Explained:
-- `display`: Contains conversion rules grouped by context
-  - `model`: Rules for generating model properties
-  - `html`: Rules for generating HTML elements
-- Each rule contains:
-  - `dataType`: Input data type (String, Number, Boolean, etc.)
-  - `convert`: Template with @{fieldName} placeholder or @{display.htmlInteger}
-  - `htmlInteger`: Add an option for replacing the **fieldName** value in the JSON model.
 
 ## 🎯 Template Tags
 
@@ -199,7 +229,7 @@ Found a bug or have a suggestion? Please report it on our [GitHub repository](ht
 
 ## 📝 Release Notes
 
-### 0.0.7
+### 0.0.8
 - Initial release
 - Template generation system
 - JSON-based code generation
